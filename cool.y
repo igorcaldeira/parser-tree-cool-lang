@@ -4,10 +4,27 @@
  *
  */
 %{
-#include <iostream.h>
+#include "cool-io.h" //includes iostream
 #include "cool-tree.h"
 #include "stringtab.h"
 #include "utilities.h"
+
+/* Locations */
+#define YYLTYPE int              /* the type of locations */
+#define cool_yylloc curr_lineno  /* use the curr_lineno from the lexer
+                                    for the location of tokens */
+extern int node_lineno;          /* set before constructing a tree node
+                                    to whatever you want the line number
+                                    for the tree node to be */
+
+/* The default action for locations.  Use the location of the first
+   terminal/non-terminal and set the node_lineno to that value. */
+#define YYLLOC_DEFAULT(Current, Rhs, N)         \
+  Current = Rhs[1];                             \
+  node_lineno = Current;
+
+#define SET_NODELOC(Current)  \
+  node_lineno = Current;
 
 extern char *curr_filename;
 
@@ -81,7 +98,9 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 /* 
    Save the root of the abstract syntax tree in a global variable.
 */
-program	: class_list	{ ast_root = program($1); }
+program	: class_list	{ /* make sure bison computes location information */
+                          @$ = @1;
+                          ast_root = program($1); }
         ;
 
 class_list
