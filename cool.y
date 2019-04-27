@@ -72,22 +72,14 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 %type <class_> class
 
 /* You will want to change the following line. */
+%type <feature> feature
 %type <features> feature_list
-
-%type <methods> methods
-
-%type <expressions> exp_constants
-%type <expressions> exp_identifiers
-%type <expressions> exp_assignment
-%type <expressions> exp_dispatch
-%type <expressions> exp_conditionals
-%type <expressions> exp_loops
-%type <expressions> exp_blocks
-%type <expressions> exp_let
-%type <expressions> exp_case
-%type <expressions> exp_new
-%type <expressions> exp_isvoid
-%type <expressions> exp_arithmetic_comparison
+%type <formal> formal
+%type <formals> formal_list
+%type <expression> expr
+%type <expressions> expr_list
+%type <case_> case
+%type <cases> case_list
 
 /* Precedence declarations go here. */
 /*    precedencia - sintaxe cool (left-associative operators.) */
