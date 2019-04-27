@@ -4,27 +4,10 @@
  *
  */
 %{
-#include "cool-io.h" //includes iostream
+#include <iostream>
 #include "cool-tree.h"
 #include "stringtab.h"
 #include "utilities.h"
-
-/* Locations */
-#define YYLTYPE int              /* the type of locations */
-#define cool_yylloc curr_lineno  /* use the curr_lineno from the lexer
-                                    for the location of tokens */
-extern int node_lineno;          /* set before constructing a tree node
-                                    to whatever you want the line number
-                                    for the tree node to be */
-
-/* The default action for locations.  Use the location of the first
-   terminal/non-terminal and set the node_lineno to that value. */
-#define YYLLOC_DEFAULT(Current, Rhs, N)         \
-  Current = Rhs[1];                             \
-  node_lineno = Current;
-
-#define SET_NODELOC(Current)  \
-  node_lineno = Current;
 
 extern char *curr_filename;
 
@@ -89,18 +72,51 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 %type <class_> class
 
 /* You will want to change the following line. */
-%type <features> dummy_feature_list
+%type <features> feature_list
+
+%type <methods> methods
+
+%type <expressions> exp_constants
+%type <expressions> exp_identifiers
+%type <expressions> exp_assignment
+%type <expressions> exp_dispatch
+%type <expressions> exp_conditionals
+%type <expressions> exp_loops
+%type <expressions> exp_blocks
+%type <expressions> exp_let
+%type <expressions> exp_case
+%type <expressions> exp_new
+%type <expressions> exp_isvoid
+%type <expressions> exp_arithmetic_comparison
 
 /* Precedence declarations go here. */
+/*    precedencia - sintaxe cool (left-associative operators.) */
+/*    capitulo 11.1 do manual do cool (pdf pagina 17) */
+/*    operator precedence do bison sao encontrados na pagina 76 (84 no pdf)  */
 
+%left '.'
+%left '@'
+%left '~'
+%left 'isvoid'
+
+%left '*'
+%left '/'
+%left '-'
+%left '+'
+
+%nonassoc '='
+%nonassoc '<='
+%nonassoc '<' 
+
+%right '<-'
+
+%precedence 'not'
 
 %%
 /* 
    Save the root of the abstract syntax tree in a global variable.
 */
-program	: class_list	{ /* make sure bison computes location information */
-                          @$ = @1;
-                          ast_root = program($1); }
+program	: class_list	{ ast_root = program($1); }
         ;
 
 class_list
@@ -113,15 +129,15 @@ class_list
 	;
 
 /* If no parent is specified, the class inherits from the Object class. */
-class	: CLASS TYPEID '{' dummy_feature_list '}' ';'
+class	: CLASS TYPEID '{' feature_list '}' ';'
 		{ $$ = class_($2,idtable.add_string("Object"),$4,
 			      stringtable.add_string(curr_filename)); }
-	| CLASS TYPEID INHERITS TYPEID '{' dummy_feature_list '}' ';'
+	| CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
 		{ $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
 	;
 
 /* Feature list may be empty, but no empty features in list. */
-dummy_feature_list:		/* empty */
+feature_list:		/* empty */
                 {  $$ = nil_Features(); }
 
 
