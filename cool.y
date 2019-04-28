@@ -130,8 +130,50 @@ class	: CLASS TYPEID '{' feature_list '}' ';'
 
 /* Feature list may be empty, but no empty features in list. */
 feature_list:		/* empty */
-                {  $$ = nil_Features(); }
+    {  $$ = nil_Features(); }
+	| feature_list feature
+    { $$ = append_feature($1, single_feature($2)); }
+	| feature_list error ';'
+    {}
+	;
 
+/* no empty features */
+feature:
+  OBJECTID '(' ')' ':' TYPEID '{' expr '}' ';'
+    { $$ = function($1, empty_formal(), $5, $7); }
+  | OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}' ';'
+    { $$ = function($1, $3, $6, $8); }
+  | OBJECTID ':' TYPEID ASSIGN expr ';'
+    { $$ = attr($1, $3, $5); }
+  | OBJECTID ':' TYPEID ';'
+    { $$ = attr($1, $3, empty_expr()); }
+	| feature error ';'
+    {}
+	;
+
+formal_list:
+    {  $$ = nil_formal(); }
+  | formal
+    { $$ = single_formal($1); }
+  | formal_list ',' formal
+    { $$ = append_formal($1, single_formal($3)); }
+	;
+
+formal:
+  OBJECTID ':' TYPEID
+    { $$ = formal($1, $3); }
+  ;
+
+case_list:
+    { $$ = nil_Cases(); }
+  | case_list case
+    { $$ = append_case($1, single_case($2)); }
+  ;
+
+case:
+  OBJECTID ':' TYPEID DARROW expr ';' 
+    { $$ = case_item($1, $3, $5); }
+  ;
 
 /* end of grammar */
 %%
